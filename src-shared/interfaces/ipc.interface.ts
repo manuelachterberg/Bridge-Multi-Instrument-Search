@@ -5,6 +5,7 @@ import { Settings } from '../Settings.js'
 import { Download, DownloadProgress } from './download.interface.js'
 import { ThemeColors } from './theme.interface.js'
 import { UpdateProgress } from './update.interface.js'
+import { SpotifyTrack } from './spotify.interface.js'
 
 export interface ContextBridgeApi {
 	invoke: IpcInvokeHandlers
@@ -45,6 +46,10 @@ export interface IpcInvokeEvents {
 	showOpenDialog: {
 		input: OpenDialogOptions
 		output: OpenDialogReturnValue
+	}
+	getSpotifyPlaylistTracks: {
+		input: string
+		output: SpotifyTrack[]
 	}
 	getThemeColors: {
 		input: string

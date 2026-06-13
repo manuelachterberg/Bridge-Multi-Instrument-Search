@@ -29,7 +29,10 @@ export interface Settings {
 	customThemePath: string | null            // The last folder that contained the `customTheme`'s file
 	libraryPath: string | undefined           // The path to the user's library
 	issueScanPath: string | undefined         // The path to use when scanning for issues
-	spreadsheetOutputPath: string | undefined // The path to use when saving generated issues
+	spreadsheetOutputPath: string | undefined  // The path to use when saving generated issues
+	spotifyClientId: string | undefined
+	spotifyClientSecret: string | undefined
+	spotifyRefreshToken: string | undefined
 	chartFolderName: string                   // The relative path and name of the chart that is saved in `libraryPath`
 	isSng: boolean                            // If the chart should be downloaded as a .sng file or as a chart folder
 	isCompactTable: boolean                   // If the search result table should have reduced padding
@@ -51,6 +54,9 @@ export const defaultSettings: Settings = {
 	libraryPath: undefined,
 	issueScanPath: undefined,
 	spreadsheetOutputPath: undefined,
+	spotifyClientId: undefined,
+	spotifyClientSecret: undefined,
+	spotifyRefreshToken: undefined,
 	chartFolderName: '{artist} - {name} ({charter})',
 	isSng: false,
 	isCompactTable: false,

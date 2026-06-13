@@ -17,6 +17,8 @@ export class SettingsComponent implements OnInit {
 	public isSng: FormControl<boolean>
 	public downloadVideos: FormControl<boolean>
 	public isCompactTable: FormControl<boolean>
+	public spotifyClientId: FormControl<string>
+	public spotifyClientSecret: FormControl<string>
 
 	public artistColumn: FormControl<boolean>
 	public albumColumn: FormControl<boolean>
@@ -51,6 +53,11 @@ export class SettingsComponent implements OnInit {
 		this.downloadVideos.valueChanges.subscribe(value => settingsService.downloadVideos = value)
 		this.isCompactTable = new FormControl<boolean>(settingsService.isCompactTable, { nonNullable: true })
 		this.isCompactTable.valueChanges.subscribe(value => ss.isCompactTable = value)
+
+		this.spotifyClientId = new FormControl<string>(ss.spotifyClientId ?? '', { nonNullable: true })
+		this.spotifyClientId.valueChanges.subscribe(value => ss.spotifyClientId = value || undefined)
+		this.spotifyClientSecret = new FormControl<string>(ss.spotifyClientSecret ?? '', { nonNullable: true })
+		this.spotifyClientSecret.valueChanges.subscribe(value => ss.spotifyClientSecret = value || undefined)
 
 		this.artistColumn = new FormControl<boolean>(ss.visibleColumns.includes('artist'), { nonNullable: true })
 		this.albumColumn = new FormControl<boolean>(ss.visibleColumns.includes('album'), { nonNullable: true })

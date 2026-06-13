@@ -86,10 +86,14 @@
 					</ul>
 				</div>
 			}
+			<app-spotify-playlist-modal #spotifyModal />
 		</div>
 		<div class="flex-1 flex-grow-[3] h-0"></div>
 		<!-- Advanced Search -->
 		<div>
+			<button class="btn btn-ghost uppercase" (click)="spotifyModal.open()">
+				<i class="bi bi-spotify"></i> Spotify Playlist
+			</button>
 			<button class="btn btn-ghost uppercase" (click)="setShowAdvanced(!showAdvanced)">
 				Advanced Search
 				<div class="cursor-pointer swap swap-rotate" [class.swap-active]="showAdvanced">

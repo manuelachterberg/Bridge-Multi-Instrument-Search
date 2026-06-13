@@ -225,7 +225,7 @@ export class ChartSidebarComponent implements OnInit {
 	public get defaultInstrument() {
 		return this.instruments.some(i => i === this.searchService.instrument.value)
 			? this.searchService.instrument.value!
-			: this.instruments[0]
+			: (this.instruments[0] ?? 'guitar')
 	}
 	public get instruments(): Instrument[] {
 		if (!this.selectedChart) { return [] }
@@ -239,7 +239,7 @@ export class ChartSidebarComponent implements OnInit {
 	public get defaultDifficulty() {
 		return this.difficulties.some(d => d === this.searchService.difficulty.value)
 			? this.searchService.difficulty.value!
-			: this.difficulties[0]
+			: (this.difficulties[0] ?? 'expert')
 	}
 	public get difficulties(): Difficulty[] {
 		if (!this.selectedChart) { return [] }

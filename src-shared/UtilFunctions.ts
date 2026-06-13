@@ -134,6 +134,40 @@ export function instrumentToDiff(instrument: Instrument | 'vocals') {
 	}
 }
 
+export function chartHasInstrument(chart: ChartData, instrument: Instrument) {
+	return chart.notesData?.noteCounts?.some(noteCount => noteCount.instrument === instrument && noteCount.count > 0) ?? false
+}
+
+export function filterChartsByInstruments(charts: ChartData[], selectedInstruments: (Instrument | null)[]) {
+	const concreteInstruments = selectedInstruments.filter((instrument): instrument is Instrument => instrument !== null)
+	if (concreteInstruments.length === 0 || selectedInstruments.includes(null)) {
+		return charts
+	}
+
+	return charts.filter(chart => concreteInstruments.every(instrument => chartHasInstrument(chart, instrument)))
+}
+
+export function intersectChartResultsByInstruments(resultSets: ChartData[][], selectedInstruments: Instrument[]) {
+	if (selectedInstruments.length === 0) {
+		return _.uniqBy(resultSets.flat(), 'chartId')
+	}
+
+	const filteredSets = resultSets.map(resultSet => filterChartsByInstruments(resultSet, selectedInstruments))
+	const requiredChartIds = filteredSets.reduce<Set<number> | null>((currentIds, resultSet) => {
+		const resultIds = new Set(resultSet.map(chart => chart.chartId))
+		if (currentIds === null) {
+			return resultIds
+		}
+		return new Set([...currentIds].filter(chartId => resultIds.has(chartId)))
+	}, null)
+
+	if (requiredChartIds === null) {
+		return []
+	}
+
+	return _.uniqBy(filteredSets.flat().filter(chart => requiredChartIds.has(chart.chartId)), 'chartId')
+}
+
 /**
  * @returns a string representation of `ms` that looks like HH:MM:SS
  */

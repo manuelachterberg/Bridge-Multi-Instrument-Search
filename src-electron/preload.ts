@@ -25,6 +25,7 @@ const electronApi: ContextBridgeApi = {
 		isMaximized: getInvoker('isMaximized'),
 		showOpenDialog: getInvoker('showOpenDialog'),
 		getThemeColors: getInvoker('getThemeColors'),
+		getSpotifyPlaylistTracks: getInvoker('getSpotifyPlaylistTracks'),
 	},
 	emit: {
 		download: getEmitter('download'),

@@ -1,0 +1,143 @@
+<dialog #modal class="modal whitespace-normal">
+	<div class="modal-box bg-base-100 text-base-content flex flex-col gap-3 w-11/12 max-w-4xl max-h-[90vh]">
+		<div class="flex justify-between items-center">
+			<h3 class="font-bold text-lg">Spotify Playlist → Bulk Download</h3>
+			<form method="dialog">
+				<button class="btn btn-sm btn-circle btn-ghost" (click)="close()">
+					<i class="bi bi-x-lg text-lg"></i>
+				</button>
+			</form>
+		</div>
+
+		<!-- URL Input -->
+		<div class="flex gap-2 items-end">
+			<label class="form-control flex-1">
+				<span class="label-text">Spotify Playlist URL</span>
+				<input type="text" class="input input-bordered input-sm" placeholder="https://open.spotify.com/playlist/..." [(ngModel)]="playlistUrl" />
+			</label>
+			<button class="btn btn-sm btn-primary" [class.loading]="isLoading" (click)="fetchTracks()"><i class="bi bi-spotify"></i> Fetch Tracks</button>
+		</div>
+
+		<!-- Error -->
+		@if (errorMessage) {
+			<div class="alert alert-error alert-sm">
+				<i class="bi bi-exclamation-triangle-fill"></i>
+				{{ errorMessage }}
+			</div>
+		}
+
+		<!-- Instrument Selection -->
+		<div class="flex gap-2 items-center">
+			<span class="text-sm">Require instruments:</span>
+			<div class="dropdown">
+				<label tabindex="0" class="btn btn-sm btn-neutral">
+					{{ selectedInstrumentsLabel }}
+				</label>
+				<ul tabindex="0" class="menu dropdown-content z-[2] p-2 shadow bg-neutral text-neutral-content rounded-box w-64">
+					<li>
+						<a (click)="toggleInstrument(null)" [class.bg-primary-content]="isInstrumentSelected(null)"> Any Instrument </a>
+					</li>
+					@for (instrument of instruments; track $index) {
+						<li>
+							<a (click)="toggleInstrument(instrument)" [class.bg-primary-content]="isInstrumentSelected(instrument)">
+								<img class="w-6" src="https://static.enchor.us/instrument-{{ instrument }}.png" />
+								{{ instrumentDisplay(instrument) }}
+							</a>
+						</li>
+					}
+				</ul>
+			</div>
+		</div>
+
+		<!-- Stats -->
+		@if (tracks.length > 0) {
+			<div class="flex gap-4 text-sm">
+				<span>{{ tracks.length }} tracks fetched</span>
+				@if (searchProgress.total > 0) {
+					<span>{{ searchProgress.current }} / {{ searchProgress.total }} searched</span>
+					<span class="text-success">{{ foundCount }} found</span>
+					<span class="text-error">{{ notFoundCount }} not found</span>
+				}
+			</div>
+		}
+		@if (isSearching) {
+			<div class="text-xs opacity-70">
+				Searching playlist tracks...
+			</div>
+		}
+
+		<!-- Progress Bar -->
+		@if (searchProgress.total > 0 && searchProgress.current < searchProgress.total) {
+			<progress class="progress progress-primary w-full" [value]="searchProgress.current" [max]="searchProgress.total"></progress>
+		}
+
+		<!-- Track List -->
+		@if (tracks.length > 0) {
+			<div class="flex-1 overflow-y-auto min-h-0 border border-base-200 rounded-lg">
+				<table class="table table-xs">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Track</th>
+							<th>Status</th>
+							<th>Chart</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (item of tracks; track $index) {
+							<tr>
+								<td>{{ $index + 1 }}</td>
+								<td>
+									<div class="font-medium">{{ item.track.name }}</div>
+									<div class="text-xs text-opacity-70">{{ item.track.artist }}</div>
+								</td>
+								<td>
+									@if (item.status === 'pending') {
+										<span class="badge badge-ghost badge-sm">Pending</span>
+									} @else if (item.status === 'searching') {
+										<span class="badge badge-info badge-sm">Searching...</span>
+									} @else if (item.status === 'found') {
+										<span class="badge badge-success badge-sm">Found ({{ item.charts.length }})</span>
+									} @else if (item.status === 'not_found') {
+										<span class="badge badge-error badge-sm">Not found</span>
+									} @else if (item.status === 'error') {
+										<span class="badge badge-warning badge-sm">Error</span>
+									} @else if (item.status === 'queued') {
+										<span class="badge badge-accent badge-sm">Queued</span>
+									}
+								</td>
+								<td>
+									@if (item.status === 'found' && item.charts.length > 1) {
+										<select class="select select-xs select-bordered" [(ngModel)]="item.selectedChartIndex" [ngModelOptions]="{ standalone: true }">
+											@for (chart of item.charts; track $index) {
+												<option [ngValue]="$index">
+													{{ chart.artist ?? 'Unknown' }} - {{ chart.name ?? 'Unknown' }} ({{ chart.charter ?? 'Unknown' }})
+												</option>
+											}
+										</select>
+									} @else if (item.status === 'found' && item.charts.length === 1) {
+										<span class="text-xs">
+											{{ item.charts[0].artist ?? 'Unknown' }} - {{ item.charts[0].name ?? 'Unknown' }} ({{ item.charts[0].charter ?? 'Unknown' }})
+										</span>
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+
+		<!-- Actions -->
+		<div class="flex gap-2 justify-end">
+			<button class="btn btn-sm btn-ghost" (click)="clear()">Clear</button>
+			<button class="btn btn-sm btn-primary" [class.btn-disabled]="!canSearch" (click)="searchAll()"><i class="bi bi-search"></i> Search All</button>
+			<button class="btn btn-sm btn-success" [class.btn-disabled]="!canDownload" (click)="downloadAll()">
+				<i class="bi bi-download"></i> Download All Found ({{ foundCount }})
+			</button>
+		</div>
+	</div>
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
+</dialog>

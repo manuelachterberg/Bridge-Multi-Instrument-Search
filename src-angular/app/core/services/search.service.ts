@@ -7,7 +7,7 @@ import { catchError, forkJoin, map, mergeMap, tap, throwError, timer } from 'rxj
 import { Difficulty, Instrument } from 'scan-chart'
 import { environment } from 'src-angular/environments/environment'
 import { AdvancedSearch, ChartData, SearchResult } from 'src-shared/interfaces/search.interface'
-import { DrumTypeName } from 'src-shared/UtilFunctions'
+import { DrumTypeName, filterChartsByInstruments, intersectChartResultsByInstruments } from 'src-shared/UtilFunctions'
 
 const resultsPerPage = 25
 
@@ -31,6 +31,7 @@ export class SearchService {
 
 	public searchControl = new FormControl('', { nonNullable: true })
 	public instruments: FormControl<(Instrument | null)[]>
+	public instrument = new FormControl<Instrument | null>(null)
 	public difficulty: FormControl<Difficulty | null>
 	public drumType: FormControl<DrumTypeName | null>
 	public drumsReviewed: FormControl<boolean>
@@ -61,9 +62,11 @@ export class SearchService {
 			}
 		}
 		
-		this.instruments = new FormControl<(Instrument | null)[]>(initialInstruments);
+		this.instruments = new FormControl<(Instrument | null)[]>(initialInstruments, { nonNullable: true });
+		this.instrument.setValue(initialInstruments.find(instrument => instrument !== null) ?? null, { emitEvent: false })
 		this.instruments.valueChanges.subscribe(instruments => {
 			localStorage.setItem('instruments', JSON.stringify(instruments));
+			this.instrument.setValue(instruments.find(instrument => instrument !== null) ?? null, { emitEvent: false })
 			if (this.songsResponse.page) {
 				this.search(this.searchControl.value || '*').subscribe();
 			}
@@ -142,26 +145,17 @@ export class SearchService {
 		});
 
 		return forkJoin(searches).pipe(
-			map(results => {
-				// Combine all results
-				let combinedData: ChartData[] = [];
-				let totalFound = 0;
-
-				results.forEach(result => {
-					combinedData = [...combinedData, ...result.data];
-					totalFound += result.found;
-				});
-
-				// Remove duplicates based on chartId
-				const uniqueData = _.uniqBy(combinedData, 'chartId');
+			map((results: SearchResult[]) => {
+				const concreteInstruments = selectedInstruments.filter((instrument): instrument is Instrument => instrument !== null)
+				const uniqueData = intersectChartResultsByInstruments(results.map(result => result.data), concreteInstruments)
 
 				// Create a combined result
 				const combinedResult: SearchResult = {
 					data: uniqueData,
 					found: uniqueData.length,
 					page: this.currentPage,
-					pages: Math.ceil(uniqueData.length / resultsPerPage),
-					per_page: resultsPerPage,
+					out_of: uniqueData.length,
+					search_time_ms: results.reduce((sum, result) => sum + result.search_time_ms, 0),
 				};
 
 				// Process the combined result
@@ -207,6 +201,10 @@ export class SearchService {
 			sort: this.sortColumn !== null ? { type: this.sortColumn, direction: this.sortDirection } : null,
 			source: 'bridge',
 		}).pipe(
+			map(response => ({
+				...response,
+				data: filterChartsByInstruments(response.data, instrument === null ? [null] : [instrument]),
+			})),
 			catchError((err, caught) => {
 				if (err.status === 400 || retries-- <= 0) {
 					this.searchLoading = false;
@@ -289,18 +287,9 @@ export class SearchService {
 		});
 
 		return forkJoin(searches).pipe(
-			map(results => {
-				// Combine all results
-				let combinedData: ChartData[] = [];
-				let totalFound = 0;
-
-				results.forEach(result => {
-					combinedData = [...combinedData, ...result.data];
-					totalFound += result.found;
-				});
-
-				// Remove duplicates based on chartId
-				const uniqueData = _.uniqBy(combinedData, 'chartId');
+			map((results: { data: SearchResult['data']; found: number }[]) => {
+				const concreteInstruments = selectedInstruments.filter((instrument): instrument is Instrument => instrument !== null)
+				const uniqueData = intersectChartResultsByInstruments(results.map(result => result.data), concreteInstruments)
 
 				// Create a combined result
 				const combinedResult = {
@@ -318,8 +307,6 @@ export class SearchService {
 				this.songsResponse = {
 					...combinedResult,
 					page: this.currentPage,
-					pages: Math.ceil(combinedResult.found / resultsPerPage),
-					per_page: resultsPerPage
 				};
 
 				this.groupedSongs.push(
@@ -350,6 +337,10 @@ export class SearchService {
 			page: this.currentPage,
 			...search,
 		}).pipe(
+			map(response => ({
+				...response,
+				data: filterChartsByInstruments(response.data, search.instrument === null ? [null] : [search.instrument as Instrument]),
+			})),
 			catchError((err, caught) => {
 				if (err.status === 400 || retries-- <= 0) {
 					this.searchLoading = false;

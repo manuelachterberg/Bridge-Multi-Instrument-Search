@@ -16,6 +16,7 @@ import { SearchBarComponent } from './components/browse/search-bar/search-bar.co
 import { DownloadsModalComponent } from './components/browse/status-bar/downloads-modal/downloads-modal.component'
 import { StatusBarComponent } from './components/browse/status-bar/status-bar.component'
 import { SettingsComponent } from './components/settings/settings.component'
+import { SpotifyPlaylistModalComponent } from './components/spotify/spotify-playlist-modal.component'
 import { ToolbarComponent } from './components/toolbar/toolbar.component'
 import { RemoveStyleTagsPipe } from './core/pipes/remove-style-tags.pipe'
 
@@ -35,6 +36,7 @@ import { RemoveStyleTagsPipe } from './core/pipes/remove-style-tags.pipe'
 		DownloadsModalComponent,
 		RemoveStyleTagsPipe,
 		SettingsComponent,
+		SpotifyPlaylistModalComponent,
 	],
 	bootstrap: [AppComponent], imports: [
 		BrowserModule,

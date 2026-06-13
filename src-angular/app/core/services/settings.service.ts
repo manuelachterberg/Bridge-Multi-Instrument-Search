@@ -168,6 +168,21 @@ export class SettingsService {
 		}
 	}
 
+	get spotifyClientId() {
+		return this.settings.spotifyClientId
+	}
+	set spotifyClientId(value: string | undefined) {
+		this.settings.spotifyClientId = value
+		this.saveSettings()
+	}
+	get spotifyClientSecret() {
+		return this.settings.spotifyClientSecret
+	}
+	set spotifyClientSecret(value: string | undefined) {
+		this.settings.spotifyClientSecret = value
+		this.saveSettings()
+	}
+
 	get volume() {
 		return this.settings.volume
 	}

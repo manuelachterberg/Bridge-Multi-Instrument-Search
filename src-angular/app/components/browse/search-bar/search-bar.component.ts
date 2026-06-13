@@ -5,6 +5,7 @@ import dayjs from 'dayjs'
 import { distinctUntilChanged, switchMap, throttleTime } from 'rxjs'
 import { Difficulty, Instrument } from 'scan-chart'
 import { SearchService } from 'src-angular/app/core/services/search.service'
+import { SpotifyPlaylistModalComponent } from '../../spotify/spotify-playlist-modal.component'
 import { difficulties, difficultyDisplay, drumsReviewedDisplay, drumTypeDisplay, DrumTypeName, drumTypeNames, instrumentDisplay, instruments } from 'src-shared/UtilFunctions'
 
 @Component({
@@ -73,7 +74,7 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
 	}
 
 	get selectedInstruments() {
-		return this.searchService.instruments.value || [null]
+		return this.searchService.instruments.value
 	}
 
 	get searchLoading() {
@@ -90,7 +91,7 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
 		} else {
 			// Add the instrument
 			// Remove null/Any if it exists and we're adding a specific instrument
-			let newInstruments = instrument !== null ? 
+			let newInstruments: (Instrument | null)[] = instrument !== null ? 
 				currentInstruments.filter(i => i !== null) : [null]
 			
 			// If we're adding "Any", clear other selections
@@ -269,6 +270,7 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
 		this.startValidation = true
 		if (this.advancedSearchForm.valid && !this.searchService.searchLoading) {
 			this.searchService.advancedSearch({
+				instrument: this.selectedInstruments.includes(null) ? null : this.selectedInstruments.join(','),
 				instruments: this.selectedInstruments,
 				difficulty: this.difficulty,
 				drumType: this.drumType,

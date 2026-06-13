@@ -166,6 +166,21 @@
 		</div>
 	</div>
 
+	<div class="form-control w-full max-w-md">
+		<div class="label">
+			<span class="label-text">Spotify Integration</span>
+		</div>
+		<div class="flex flex-col gap-2">
+			<input [formControl]="spotifyClientId" class="input input-bordered input-sm" type="text" placeholder="Client ID" />
+			<input [formControl]="spotifyClientSecret" class="input input-bordered input-sm" type="password" placeholder="Client Secret (unused)" />
+			<span class="text-xs text-opacity-70">
+				Use the Client ID from
+				<a class="link" (click)="openUrl('https://developer.spotify.com/dashboard')">Spotify Developer Dashboard</a>.
+				Bridge will open Spotify login when you import a playlist.
+			</span>
+		</div>
+	</div>
+
 	<div class="form-control">
 		<div class="label">
 			<span class="label-text">Table Layout</span>

@@ -24,6 +24,7 @@ export type GeneralSearch = z.infer<typeof GeneralSearchSchema>
 const md5Validator = z.string().regex(/^[a-f0-9]{32}$/, 'Invalid MD5 hash')
 
 export const AdvancedSearchSchema = z.object({
+	instruments: z.array(z.enum(instruments).nullable()).optional(),
 	instrument: z.string().refine(selectedInstruments => {
 		const values = selectedInstruments.split(',')
 		for (const value of values) {
@@ -122,6 +123,8 @@ export interface SearchResult {
 	found: number
 	out_of: number
 	page: number
+	pages?: number
+	per_page?: number
 	search_time_ms: number
 	data: {
 		/** The song name. */
