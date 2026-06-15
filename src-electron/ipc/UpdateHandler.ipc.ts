@@ -1,34 +1,58 @@
-import electronUpdater from 'electron-updater'
+import { app } from 'electron'
 import { inspect } from 'util'
 
 import { UpdateProgress } from '../../src-shared/interfaces/update.interface.js'
 import { emitIpcEvent } from '../main.js'
 
+type AutoUpdater = typeof import('electron-updater')['autoUpdater']
+
+let autoUpdater: AutoUpdater | null = null
 let updateAvailable: 'yes' | 'no' | 'error' = 'no'
 let downloading = false
+let updaterInitialized = false
 
-electronUpdater.autoUpdater.autoDownload = false
-electronUpdater.autoUpdater.logger = null
+async function getAutoUpdater() {
+	if (autoUpdater) {
+		return autoUpdater
+	}
 
-electronUpdater.autoUpdater.on('error', (err: Error) => {
-	updateAvailable = 'error'
-	emitIpcEvent('updateError', inspect(err))
-})
+	try {
+		autoUpdater = (await import('electron-updater')).autoUpdater
+		autoUpdater.autoDownload = false
+		autoUpdater.logger = null
 
-electronUpdater.autoUpdater.on('update-available', (info: electronUpdater.UpdateInfo) => {
-	updateAvailable = 'yes'
-	emitIpcEvent('updateAvailable', info)
-})
+		if (!updaterInitialized) {
+			updaterInitialized = true
+			autoUpdater.on('error', (err: Error) => {
+				updateAvailable = 'error'
+				emitIpcEvent('updateError', inspect(err))
+			})
+			autoUpdater.on('update-available', info => {
+				updateAvailable = 'yes'
+				emitIpcEvent('updateAvailable', info)
+			})
+			autoUpdater.on('update-not-available', () => {
+				updateAvailable = 'no'
+				emitIpcEvent('updateAvailable', null)
+			})
+		}
 
-electronUpdater.autoUpdater.on('update-not-available', () => {
-	updateAvailable = 'no'
-	emitIpcEvent('updateAvailable', null)
-})
-
+		return autoUpdater
+	} catch (err) {
+		updateAvailable = 'error'
+		emitIpcEvent('updateError', inspect(err))
+		return null
+	}
+}
 
 export async function retryUpdate() {
+	const updater = await getAutoUpdater()
+	if (!updater) {
+		return
+	}
+
 	try {
-		await electronUpdater.autoUpdater.checkForUpdates()
+		await updater.checkForUpdates()
 	} catch (err) {
 		updateAvailable = 'error'
 		emitIpcEvent('updateError', inspect(err))
@@ -43,30 +67,38 @@ export async function getUpdateAvailable() {
  * @returns the current version of Bridge.
  */
 export async function getCurrentVersion() {
-	return electronUpdater.autoUpdater.currentVersion.raw
+	const updater = await getAutoUpdater()
+	return updater?.currentVersion.raw ?? app.getVersion()
 }
 
 /**
  * Begins the process of downloading the latest update.
  */
-export function downloadUpdate() {
+export async function downloadUpdate() {
 	if (downloading) { return }
+
+	const updater = await getAutoUpdater()
+	if (!updater) {
+		return
+	}
+
 	downloading = true
 
-	electronUpdater.autoUpdater.on('download-progress', (updateProgress: UpdateProgress) => {
+	updater.on('download-progress', (updateProgress: UpdateProgress) => {
 		emitIpcEvent('updateProgress', updateProgress)
 	})
 
-	electronUpdater.autoUpdater.on('update-downloaded', () => {
+	updater.on('update-downloaded', () => {
 		emitIpcEvent('updateDownloaded', undefined)
 	})
 
-	electronUpdater.autoUpdater.downloadUpdate()
+	await updater.downloadUpdate()
 }
 
 /**
  * Immediately closes the application and installs the update.
  */
-export function quitAndInstall() {
-	electronUpdater.autoUpdater.quitAndInstall() // autoUpdater installs a downloaded update on the next program restart by default
+export async function quitAndInstall() {
+	const updater = await getAutoUpdater()
+	updater?.quitAndInstall()
 }

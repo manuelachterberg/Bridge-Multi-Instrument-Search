@@ -1,13 +1,12 @@
+import { BrowserWindow } from 'electron'
 import { readFileSync } from 'fs'
-import { ensureDir, outputFile } from 'fs-extra'
 import _ from 'lodash'
 import { inspect } from 'util'
 
 import { dataPath, settingsPath, tempPath, themesPath } from '../../src-shared/Paths.js'
 import { defaultSettings, Settings } from '../../src-shared/Settings.js'
-import { mainWindow } from '../main.js'
+import { ensureDir, outputFile } from '../fsUtils.js'
 
-console.log(settingsPath)
 export let settings = readSettings()
 
 function readSettings() {
@@ -29,7 +28,7 @@ function readSettings() {
  */
 export async function setSettings(newSettings: Settings) {
 	if (settings.zoomFactor !== newSettings.zoomFactor) {
-		mainWindow.webContents.setZoomFactor(newSettings.zoomFactor)
+		BrowserWindow.getAllWindows()[0]?.webContents.setZoomFactor(newSettings.zoomFactor)
 	}
 	settings = newSettings
 	await saveSettings(newSettings)

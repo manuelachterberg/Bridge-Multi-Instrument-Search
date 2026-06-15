@@ -1,12 +1,10 @@
 import { randomUUID } from 'crypto'
 import EventEmitter from 'events'
 import { createWriteStream } from 'fs'
-import { ensureDir, move, remove } from 'fs-extra'
 import { access, constants } from 'fs/promises'
 import { IncomingMessage } from 'http'
 import https from 'https'
 import _ from 'lodash'
-import { SngStream } from 'parse-sng'
 import { join } from 'path'
 import { Readable } from 'stream'
 import { ReadableStream } from 'stream/web'
@@ -14,6 +12,7 @@ import { inspect } from 'util'
 
 import { tempPath } from '../../../src-shared/Paths.js'
 import { resolveChartFolderName } from '../../../src-shared/UtilFunctions.js'
+import { ensureDir, move, remove } from '../../fsUtils.js'
 import { getSettings } from '../SettingsHandler.ipc.js'
 
 export interface DownloadMessage {
@@ -165,6 +164,7 @@ export class ChartDownload {
 				})
 			})
 		} else {
+			const { SngStream } = await import('parse-sng')
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const sngStream = new SngStream(Readable.toWeb(response) as any, { generateSongIni: true })
 			let downloadedByteCount = BigInt(0)
@@ -218,20 +218,14 @@ export class ChartDownload {
 
 		this.showProgress('Moving chart to library folder...', 100)
 		await new Promise<void>(resolve => setTimeout(resolve, 200)) // Delay for OS file processing
-		await new Promise<void>((resolve, reject) => {
-			if (settings.libraryPath) {
-				const destinationPath = join(settings.libraryPath, this.chartFolderPath)
-				move(this.tempPath, destinationPath, { overwrite: true }, err => {
-					if (err) {
-						reject({ header: 'Failed to move chart to library folder', body: inspect(err) })
-					} else {
-						resolve()
-					}
-				})
-			} else {
-				reject({ header: 'Library folder not specified', body: 'Please go to the settings to set your library folder.' })
-			}
-		})
+		if (settings.libraryPath) {
+			const destinationPath = join(settings.libraryPath, this.chartFolderPath)
+			await move(this.tempPath, destinationPath, { overwrite: true }).catch(err => {
+				throw { header: 'Failed to move chart to library folder', body: inspect(err) }
+			})
+		} else {
+			throw { header: 'Library folder not specified', body: 'Please go to the settings to set your library folder.' }
+		}
 
 		this.showProgress('Deleting temporary folder...')
 		try {

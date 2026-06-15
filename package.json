@@ -34,20 +34,17 @@
     "@angular/platform-browser-dynamic": "19.2.1",
     "@angular/router": "19.2.1",
     "@electron/universal": "^2.0.1",
+    "binary-parser": "2.2.1",
     "bootstrap-icons": "1.11.3",
     "bottleneck": "2.19.5",
     "culori": "4.0.1",
     "dayjs": "1.11.11",
-    "electron-unhandled": "5.0.0",
     "electron-updater": "6.2.1",
-    "electron-window-state": "5.0.3",
     "eventemitter3": "5.0.1",
     "exceljs": "^4.4.0",
-    "fs-extra": "11.2.0",
     "lodash": "4.17.21",
     "parse-sng": "4.0.3",
     "rxjs": "7.8.1",
-    "sanitize-filename": "1.6.3",
     "scan-chart": "6.1.0",
     "three": "0.166.1",
     "tslib": "2.6.3",
@@ -89,15 +86,5 @@
     "tailwind-scrollbar": "3.1.0",
     "tailwindcss": "3.4.4",
     "typescript": "5.8.2"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron",
-      "esbuild",
-      "exifreader",
-      "lmdb",
-      "msgpackr-extract",
-      "nx"
-    ]
   }
 }

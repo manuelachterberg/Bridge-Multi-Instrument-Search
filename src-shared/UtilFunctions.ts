@@ -1,6 +1,5 @@
 import { interpolate as culoriInterpolate, oklch, wcagContrast } from 'culori'
 import _ from 'lodash'
-import sanitize from 'sanitize-filename'
 import { Difficulty, Instrument } from 'scan-chart'
 
 import { ChartData } from './interfaces/search.interface'
@@ -347,8 +346,12 @@ export function resolveChartFolderName(
  * @returns `filename` with all invalid filename characters replaced. Assumes `filename` has at least one valid filename character already.
  */
 export function sanitizeNonemptyFilename(filename: string) {
-	return sanitize(filename, {
-		replacement: (invalidChar: string) => {
+	return replaceInvalidFilenameCharacters(filename)
+}
+
+export function replaceInvalidFilenameCharacters(filename: string) {
+	return filename
+		.replace(/[<>:"/\\|?*\u0000-\u001F]/g, invalidChar => {
 			switch (invalidChar) {
 				case '<':
 					return '❮'
@@ -371,8 +374,8 @@ export function sanitizeNonemptyFilename(filename: string) {
 				default:
 					return '_'
 			}
-		},
-	})
+		})
+		.replace(/[. ]+$/g, '')
 }
 
 /* eslint-disable @typescript-eslint/naming-convention */

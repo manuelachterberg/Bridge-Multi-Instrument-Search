@@ -1,0 +1,16 @@
+allowBuilds:
+  '@parcel/watcher': true
+  electron: true
+  esbuild: true
+  exifreader: true
+  lmdb: true
+  msgpackr-extract: true
+  nx: true
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - electron
+  - esbuild
+  - exifreader
+  - lmdb
+  - msgpackr-extract
+  - nx

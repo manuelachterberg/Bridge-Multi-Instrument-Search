@@ -2,10 +2,10 @@ import Bottleneck from 'bottleneck'
 import dayjs from 'dayjs'
 import { shell } from 'electron'
 import { createReadStream } from 'fs'
-import pkg from 'fs-extra'
+import { readdir, readFile, writeFile } from 'fs/promises'
 import _ from 'lodash'
-import { SngHeader, SngStream } from 'parse-sng'
-import { scanChartFolder, ScannedChart } from 'scan-chart'
+import type { SngHeader } from 'parse-sng'
+import type { ScannedChart } from 'scan-chart'
 import { Readable } from 'stream'
 import { inspect } from 'util'
 
@@ -13,9 +13,7 @@ import { appearsToBeChartFolder, getExtension, hasAlbumName, hasChartExtension, 
 import { hasVideoExtension } from '../../ElectronUtilFunctions.js'
 import { emitIpcEvent } from '../../main.js'
 import { getSettings } from '../SettingsHandler.ipc.js'
-import { getChartIssues, getIssuesXLSX } from './ExcelBuilder.js'
 
-const { readdir, readFile, writeFile } = pkg
 export async function scanIssues() {
 	const settings = await getSettings()
 	if (!settings.issueScanPath || !settings.spreadsheetOutputPath) {
@@ -34,6 +32,7 @@ export async function scanIssues() {
 		const charts: { chart: ScannedChart; path: string }[] = []
 		for (const chartFolder of chartFolders) {
 			limiter.schedule(async () => {
+				const { scanChartFolder } = await import('scan-chart')
 				const isSng = chartFolder.files.length === 1 && hasSngExtension(chartFolder.files[0])
 				const files = isSng ? await getFilesFromSng([chartFolder.path, chartFolder.files[0]].join('/')) : await getFilesFromFolder(chartFolder)
 
@@ -53,6 +52,7 @@ export async function scanIssues() {
 			})
 
 			limiter.on('idle', async () => {
+				const { getChartIssues, getIssuesXLSX } = await import('./ExcelBuilder.js')
 				const issues = getChartIssues(charts)
 				if (issues.length > 0) {
 					const xlsx = await getIssuesXLSX(issues)
@@ -106,6 +106,7 @@ async function getChartFolders(path: string) {
 }
 
 async function getFilesFromSng(sngPath: string) {
+	const { SngStream } = await import('parse-sng')
 	const sngStream = new SngStream(Readable.toWeb(createReadStream(sngPath)) as ReadableStream<Uint8Array>, { generateSongIni: true })
 
 	let header: SngHeader

@@ -1,9 +1,8 @@
 import { randomBytes } from 'crypto'
 import { parse } from 'path'
-import sanitize from 'sanitize-filename'
 import { inspect } from 'util'
 
-import { lower } from '../src-shared/UtilFunctions.js'
+import { lower, replaceInvalidFilenameCharacters } from '../src-shared/UtilFunctions.js'
 import { emitIpcEvent } from './main.js'
 
 /**
@@ -24,21 +23,6 @@ export function devLog(message: unknown) {
  * @returns `filename` with all invalid filename characters replaced.
  */
 export function sanitizeFilename(filename: string): string {
-	const newFilename = sanitize(filename, {
-		replacement: ((invalidChar: string) => {
-			switch (invalidChar) {
-				case '<': return '❮'
-				case '>': return '❯'
-				case ':': return '꞉'
-				case '"': return "'"
-				case '/': return '／'
-				case '\\': return '⧵'
-				case '|': return '⏐'
-				case '?': return '？'
-				case '*': return '⁎'
-				default: return '_'
-			}
-		}),
-	})
+	const newFilename = replaceInvalidFilenameCharacters(filename)
 	return (newFilename === '' ? randomBytes(5).toString('hex') : newFilename)
 }

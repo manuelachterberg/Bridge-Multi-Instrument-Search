@@ -1,6 +1,6 @@
 import exceljs, { Borders } from 'exceljs'
 import _ from 'lodash'
-import { FolderIssueType, ScannedChart } from 'scan-chart'
+import type { FolderIssueType, ScannedChart } from 'scan-chart'
 
 export function getChartIssues(charts: { chart: ScannedChart; path: string }[]) {
 	const chartIssues: {
