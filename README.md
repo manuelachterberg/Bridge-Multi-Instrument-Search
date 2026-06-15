@@ -14,6 +14,10 @@ This fork focuses on two changes on top of upstream Bridge:
 - multi-instrument search in the main browser and advanced search
 - Spotify playlist bulk download with instrument filtering
 
+<p align="center">
+  <img src="./docs/assets/spotify-playlist-bulk-download.png" alt="Spotify playlist bulk download modal"/>
+</p>
+
 It also keeps the original Bridge desktop workflow and packaging flow, so it can be built and shipped like the upstream app.
 
 ## What is different here
